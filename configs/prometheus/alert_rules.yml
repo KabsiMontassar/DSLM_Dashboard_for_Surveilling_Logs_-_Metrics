@@ -1,0 +1,26 @@
+groups:
+  - name: example
+    rules:
+    - alert: HighRequestLatency
+      expr: http_request_duration_seconds{quantile="0.5"} > 0.5
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: High request latency
+
+    - alert: HighErrorRate
+      expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: High error rate detected
+
+    - alert: InstanceDown
+      expr: up == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: Instance {{ $labels.instance }} down
