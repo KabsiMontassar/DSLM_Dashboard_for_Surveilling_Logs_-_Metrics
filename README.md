@@ -12,6 +12,57 @@
 **Sample Application** - Live Node.js app generating real observability data  
 **Professional Demo Data** - Realistic microservices traces for demonstration
 
+## Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "User Access"
+        U[👤 User] --> G[Grafana :3000]
+    end
+    
+    subgraph "Observability Stack"
+        G --> P[Prometheus :9090]
+        G --> L[Loki :3100] 
+        G --> T[Tempo :3200]
+        P --> A[Alertmanager :9093]
+    end
+    
+    subgraph "Data Collection"
+        SA[Sample App :3001] --> |metrics| P
+        SA --> |logs| L
+        SA --> |traces| T
+        
+        NE[Node Exporter :9100] --> |system metrics| P
+        CA[cAdvisor :8080] --> |container metrics| P
+    end
+    
+    subgraph "External Integrations"
+        A --> |alerts| SMTP[📧 SMTP]
+        A --> |alerts| WH[🔗 Webhooks]
+        A --> |alerts| SLACK[💬 Slack]
+    end
+    
+    subgraph "Data Storage"
+        P --> PDB[(Prometheus DB)]
+        L --> LDB[(Loki Storage)]
+        T --> TDB[(Tempo Storage)]
+        G --> GDB[(Grafana DB)]
+    end
+    
+    subgraph "OpenTelemetry Flow"
+        SA --> |OTLP HTTP :4318| T
+        SA --> |OTLP gRPC :4317| T
+        TRACES[Test Traces] --> |send_test_trace.sh| T
+    end
+    
+    style G fill:#ff6b35
+    style P fill:#e6522c
+    style L fill:#f4b942
+    style T fill:#7c4dff
+    style A fill:#ff8a65
+    style SA fill:#4caf50
+```
+
 ## Quick Start
 
 ### One-Command Setup
