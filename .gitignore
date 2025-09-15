@@ -1,0 +1,29 @@
+# Environment variables
+.env
+.env.local
+
+# Data directories (optional - uncomment if you want to ignore data)
+# data/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/

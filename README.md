@@ -1,4 +1,14 @@
-# DSLM: Dashboard for Surveilling Logs & Metrics
+# DSLM: Dashboard for Surveilling Lo## Technical Highlights
+
+✅ Service metrics scraped via Prometheus exporters (Node, cAdvisor, app-specific)
+
+✅ Centralized logs with Loki (stores logs efficiently, Prometheus-style queries)
+
+✅ Distributed tracing with Tempo (integrated with OpenTelemetry SDKs)
+
+✅ Alert routing via Alertmanager (Slack, PagerDuty, email integrations)
+
+✅ Unified dashboards in Grafana (logs + metrics & traces correlation)s
 
 A unified observability and monitoring system for microservices.
 
@@ -81,15 +91,48 @@ Demonstrates full-cycle observability expertise – from metrics (Prometheus) to
 
 1. Ensure Docker and Docker Compose are installed.
 2. Clone this repository.
-3. Run `docker-compose up -d` to start all services.
-4. Access:
-   - Grafana: http://localhost:3000 (admin/admin)
-   - Prometheus: http://localhost:9090
-   - Alertmanager: http://localhost:9093
-   - Loki: http://localhost:3100
-   - Tempo: http://localhost:3200
-   - Node Exporter: http://localhost:9100
-   - cAdvisor: http://localhost:8080
+3. **Configure Environment Variables**: Copy `.env.example` to `.env` and update sensitive values:
+
+   ```bash
+   cp .env.example .env
+   # Edit .env with your preferred settings
+   ```
+
+4. Run `docker-compose up -d` to start all services.
+5. Access the services:
+   - [Grafana](http://localhost:3000) (admin/admin)
+   - [Prometheus](http://localhost:9090)
+   - [Alertmanager](http://localhost:9093)
+   - [Loki](http://localhost:3100)
+   - [Tempo](http://localhost:3200)
+   - [Node Exporter](http://localhost:9100)
+   - [cAdvisor](http://localhost:8080)
+
+## Environment Configuration
+
+Sensitive data and configurable settings are managed through the `.env` file:
+
+- **Grafana Credentials**: Admin username and password
+- **SMTP Settings**: For email notifications from Alertmanager
+- **Webhook URLs**: For external integrations (Slack, PagerDuty)
+- **Service Ports**: Configurable to avoid conflicts
+- **Integration Keys**: API keys for third-party services
+
+**Important**: Never commit the `.env` file to version control. The repository includes a `.gitignore` file that excludes sensitive files.
+
+## Port Configuration
+
+Default ports are configured to avoid common conflicts, but can be customized in `.env`:
+
+- Prometheus: 9090
+- Grafana: 3000
+- Loki: 3100
+- Tempo: 3200/4317/4318
+- Alertmanager: 9093
+- Node Exporter: 9100
+- cAdvisor: 8080
+
+If you encounter port conflicts, update the corresponding variables in `.env`.
 
 ## Configuration
 

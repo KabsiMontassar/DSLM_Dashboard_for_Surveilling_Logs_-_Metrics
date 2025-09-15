@@ -1,6 +1,8 @@
 global:
-  smtp_smarthost: 'localhost:587'
-  smtp_from: 'alertmanager@example.org'
+  smtp_smarthost: '${ALERTMANAGER_SMTP_SMARTHOST}'
+  smtp_from: '${ALERTMANAGER_SMTP_FROM}'
+  smtp_auth_username: '${ALERTMANAGER_SMTP_USERNAME}'
+  smtp_auth_password: '${ALERTMANAGER_SMTP_PASSWORD}'
 
 route:
   group_by: ['alertname']
@@ -12,7 +14,7 @@ route:
 receivers:
 - name: 'web.hook'
   webhook_configs:
-  - url: 'http://127.0.0.1:5001/'
+  - url: '${ALERTMANAGER_WEBHOOK_URL}'
 
 inhibit_rules:
   - source_match:
