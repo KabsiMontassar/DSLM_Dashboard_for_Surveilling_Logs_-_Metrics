@@ -5,7 +5,7 @@ const promClient = require('prom-client');
 const { trace, metrics, SpanStatusCode } = require('@opentelemetry/api');
 const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
 const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
-const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-http');
+const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
 
 // Initialize OpenTelemetry
 const tracerProvider = new NodeTracerProvider();
