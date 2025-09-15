@@ -1,7 +1,7 @@
 # Environment variables
 .env
 .env.local
-
+/sample-app/node_modules
 # Data directories (optional - uncomment if you want to ignore data)
 # data/
 

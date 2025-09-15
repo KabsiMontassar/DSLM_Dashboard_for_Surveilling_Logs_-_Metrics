@@ -4,34 +4,21 @@ const LokiTransport = require('winston-loki');
 const promClient = require('prom-client');
 const { trace, SpanStatusCode } = require('@opentelemetry/api');
 const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
-const { MeterProvider, PeriodicExportingMetricReader } = require('@opentelemetry/sdk-metrics');
 const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
-const { OTLPMetricsExporter } = require('@opentelemetry/exporter-metrics-otlp-http');
 
 // -------------------- OpenTelemetry Setup -------------------- //
 
 // Tracing
 const tracerProvider = new NodeTracerProvider();
 const traceExporter = new OTLPTraceExporter({
-  url: 'http://tempo:4318/v1/traces' // OTLP endpoint for traces
+  url: 'http://tempo:4318/v1/traces'
 });
 tracerProvider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
 tracerProvider.register();
 
 // Get tracer instance
 const tracer = trace.getTracer('dslm-sample-app', '1.0.0');
-
-// Metrics
-const metricExporter = new OTLPMetricsExporter({
-  url: 'http://otel-collector:4318/v1/metrics' // OTLP endpoint for metrics
-});
-
-const meterProvider = new MeterProvider();
-meterProvider.addMetricReader(new PeriodicExportingMetricReader({
-  exporter: metricExporter,
-  exportIntervalMillis: 60000 // export every 60s
-}));
 
 // -------------------- Logging (Winston + Loki) -------------------- //
 
