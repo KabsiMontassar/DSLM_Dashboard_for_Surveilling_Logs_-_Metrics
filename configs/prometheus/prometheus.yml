@@ -30,6 +30,12 @@ scrape_configs:
     static_configs:
       - targets: ['grafana:3000']
 
+  - job_name: 'sample-app'
+    static_configs:
+      - targets: ['sample-app:3001']
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+
 alerting:
   alertmanagers:
     - static_configs:

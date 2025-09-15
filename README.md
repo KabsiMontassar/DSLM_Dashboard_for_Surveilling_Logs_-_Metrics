@@ -145,6 +145,7 @@ Default ports are configured to avoid common conflicts, but can be customized in
 - Alertmanager: 9093
 - Node Exporter: 9100
 - cAdvisor: 8080
+- Sample App: 3001
 
 If you encounter port conflicts, update the corresponding variables in `.env`.
 
@@ -243,6 +244,56 @@ To integrate your microservices:
 1. **Metrics**: Expose metrics on `/metrics` endpoint, Prometheus will scrape them.
 2. **Logs**: Send logs to Loki via HTTP or use Promtail.
 3. **Traces**: Use OpenTelemetry SDK to send traces to Tempo.
+
+## Sample Application
+
+The project includes a sample Node.js application that demonstrates the full observability stack in action. The sample app generates logs, metrics, and traces that are automatically collected and visualized in Grafana.
+
+### Features Demonstrated
+
+- **HTTP Request Logging**: All requests are logged with Winston and sent to Loki
+- **Custom Metrics**: Prometheus metrics for request count, duration, and active connections
+- **Distributed Tracing**: OpenTelemetry traces sent to Tempo with span attributes
+- **Error Simulation**: Simulated errors for testing alert scenarios
+- **Periodic Activity**: Background tasks that generate logs and traces every 30 seconds
+
+### Sample App Endpoints
+
+- `GET /` - Homepage with basic tracing
+- `GET /api/health` - Health check endpoint
+- `GET /api/work` - Simulated work with nested tracing
+- `GET /api/error` - Simulated error for testing
+- `GET /metrics` - Prometheus metrics endpoint
+
+### Accessing the Sample App
+
+Once services are running:
+
+```bash
+# Access the sample application
+curl http://localhost:3001/
+
+# View metrics
+curl http://localhost:3001/metrics
+
+# Check health
+curl http://localhost:3001/api/health
+```
+
+### Viewing Data in Grafana
+
+1. **Logs**: Go to Grafana → Explore → Select Loki datasource → Query: `{app="dslm-sample-app"}`
+2. **Metrics**: Go to Grafana → Explore → Select Prometheus datasource → Query: `http_requests_total`
+3. **Traces**: Go to Grafana → Explore → Select Tempo datasource → Search for traces
+
+### Sample Dashboard
+
+The included sample dashboard (`configs/grafana/dashboards/sample-dashboard.json`) shows:
+
+- HTTP request metrics and trends
+- Error rates and response times
+- Log volume and patterns
+- Trace spans and dependencies
 
 ## Contributing
 

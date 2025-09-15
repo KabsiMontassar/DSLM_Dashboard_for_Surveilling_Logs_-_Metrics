@@ -120,6 +120,21 @@ services:
     networks:
       - dslm_network
 
+  sample-app:
+    build: ./sample-app
+    container_name: sample-app
+    ports:
+      - "${SAMPLE_APP_PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    depends_on:
+      - loki
+      - tempo
+      - prometheus
+    networks:
+      - dslm_network
+
 networks:
   dslm_network:
     driver: bridge

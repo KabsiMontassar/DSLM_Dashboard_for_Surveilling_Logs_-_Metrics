@@ -1,0 +1,25 @@
+{
+  "name": "dslm-sample-app",
+  "version": "1.0.0",
+  "description": "Sample application for DSLM observability demo",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "winston": "^3.11.0",
+    "winston-loki": "^6.0.6",
+    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/sdk-node": "^0.45.0",
+    "@opentelemetry/exporter-otlp-http": "^0.45.0",
+    "@opentelemetry/instrumentation": "^0.45.0",
+    "@opentelemetry/instrumentation-express": "^0.33.0",
+    "@opentelemetry/instrumentation-http": "^0.45.0",
+    "prom-client": "^14.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
