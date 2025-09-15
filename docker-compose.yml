@@ -74,6 +74,7 @@ services:
       - "${ALERTMANAGER_PORT:-9093}:9093"
     volumes:
       - ./configs/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./configs/alertmanager/alertmanager-simple.yml:/etc/alertmanager/alertmanager-simple.yml
       - ./configs/alertmanager/entrypoint.sh:/entrypoint.sh
     environment:
       - ALERTMANAGER_SMTP_SMARTHOST=${ALERTMANAGER_SMTP_SMARTHOST:-localhost:587}
@@ -81,7 +82,7 @@ services:
       - ALERTMANAGER_SMTP_USERNAME=${ALERTMANAGER_SMTP_USERNAME:-}
       - ALERTMANAGER_SMTP_PASSWORD=${ALERTMANAGER_SMTP_PASSWORD:-}
       - ALERTMANAGER_WEBHOOK_URL=${ALERTMANAGER_WEBHOOK_URL:-http://127.0.0.1:5001/}
-    entrypoint: ["/bin/sh", "-c", "apk add --no-cache gettext && /entrypoint.sh"]
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
     networks:
       - dslm_network
 
