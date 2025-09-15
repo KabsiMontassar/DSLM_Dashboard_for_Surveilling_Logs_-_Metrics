@@ -108,8 +108,10 @@ cp .env.example .env
 # 2. Fix permissions (if needed)
 ./fix-permissions.sh
 
-# 3. Start services
-docker-compose up -d
+# 3. Start services (use either command format)
+docker compose up -d    # Newer format
+# OR
+docker-compose up -d    # Older format
 ```
 
 ## Setup Instructions

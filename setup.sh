@@ -117,9 +117,18 @@ check_docker() {
         exit 1
     fi
 
-    if ! command -v docker-compose &> /dev/null; then
+    # Check for Docker Compose (both old and new versions)
+    if command -v docker-compose &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+        print_success "Found docker-compose (standalone version)"
+    elif docker compose version &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker compose"
+        print_success "Found docker compose (Docker plugin)"
+    else
         print_error "Docker Compose is not installed or not in PATH"
-        print_status "Please install Docker Compose first"
+        print_status "Please install Docker Compose:"
+        print_status "  - For standalone: https://docs.docker.com/compose/install/"
+        print_status "  - For Docker plugin: Included with Docker Desktop"
         exit 1
     fi
 
@@ -131,10 +140,10 @@ start_services() {
     print_status "Starting DSLM observability stack..."
 
     # Stop any existing containers first
-    docker-compose down 2>/dev/null || true
+    $DOCKER_COMPOSE_CMD down 2>/dev/null || true
 
     # Start services
-    if docker-compose up -d; then
+    if $DOCKER_COMPOSE_CMD up -d; then
         print_success "Services started successfully!"
         print_status "Waiting for services to be healthy..."
         sleep 10
@@ -143,7 +152,7 @@ start_services() {
         check_services
     else
         print_error "Failed to start services"
-        print_status "Check logs with: docker-compose logs"
+        print_status "Check logs with: $DOCKER_COMPOSE_CMD logs"
         exit 1
     fi
 }
@@ -157,7 +166,7 @@ check_services() {
     local total=${#services[@]}
 
     for service in "${services[@]}"; do
-        if docker-compose ps | grep -q "${service}.*Up"; then
+        if $DOCKER_COMPOSE_CMD ps | grep -q "${service}.*Up"; then
             ((running++))
         fi
     done
@@ -167,8 +176,8 @@ check_services() {
         show_access_info
     else
         print_warning "Only $running/$total services are running"
-        print_status "Check status with: docker-compose ps"
-        print_status "Check logs with: docker-compose logs"
+        print_status "Check status with: $DOCKER_COMPOSE_CMD ps"
+        print_status "Check logs with: $DOCKER_COMPOSE_CMD logs"
     fi
 }
 
@@ -190,16 +199,19 @@ show_access_info() {
     echo "  🐳 cAdvisor:      http://localhost:8080"
     echo ""
     print_status "Useful commands:"
-    echo "  docker-compose logs -f          # Follow logs"
-    echo "  docker-compose ps               # Check status"
-    echo "  docker-compose down             # Stop services"
-    echo "  docker-compose restart          # Restart services"
+    echo "  $DOCKER_COMPOSE_CMD logs -f          # Follow logs"
+    echo "  $DOCKER_COMPOSE_CMD ps               # Check status"
+    echo "  $DOCKER_COMPOSE_CMD down             # Stop services"
+    echo "  $DOCKER_COMPOSE_CMD restart          # Restart services"
+    echo ""
+    print_status "Note: The script automatically detects your Docker Compose version"
+    print_status "      (docker compose vs docker-compose)"
 }
 
 # Stop services
 stop_services() {
     print_status "Stopping DSLM services..."
-    docker-compose down
+    $DOCKER_COMPOSE_CMD down
     print_success "Services stopped"
 }
 
@@ -210,7 +222,7 @@ cleanup() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_status "Cleaning up..."
-        docker-compose down -v --remove-orphans
+        $DOCKER_COMPOSE_CMD down -v --remove-orphans
         print_success "Cleanup complete"
     else
         print_status "Cleanup cancelled"
@@ -232,6 +244,10 @@ show_help() {
     echo "  logs      - Show service logs"
     echo "  cleanup   - Remove containers and volumes"
     echo "  help      - Show this help"
+    echo ""
+    echo "The script automatically detects Docker Compose version:"
+    echo "  - docker compose (newer plugin format)"
+    echo "  - docker-compose (older standalone format)"
     echo ""
     echo "Examples:"
     echo "  $0 setup    # Complete setup"
@@ -266,14 +282,14 @@ main() {
             ;;
         "restart")
             print_status "Restarting services..."
-            docker-compose restart
+            $DOCKER_COMPOSE_CMD restart
             check_services
             ;;
         "status")
             check_services
             ;;
         "logs")
-            docker-compose logs -f
+            $DOCKER_COMPOSE_CMD logs -f
             ;;
         "cleanup")
             cleanup
