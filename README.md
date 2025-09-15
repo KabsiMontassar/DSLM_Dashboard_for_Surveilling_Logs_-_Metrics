@@ -1,4 +1,4 @@
-# DSLM: Dashboard for Surveilling Lo## Technical Highlights
+# DSLM: Dashboard for Surveilling Logs - Technical Highlights
 
 ✅ Service metrics scraped via Prometheus exporters (Node, cAdvisor, app-specific)
 
