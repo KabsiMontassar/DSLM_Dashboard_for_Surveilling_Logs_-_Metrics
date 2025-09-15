@@ -2,23 +2,39 @@ const express = require('express');
 const winston = require('winston');
 const LokiTransport = require('winston-loki');
 const promClient = require('prom-client');
-const { trace, metrics, SpanStatusCode } = require('@opentelemetry/api');
+const { trace, SpanStatusCode } = require('@opentelemetry/api');
 const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
+const { MeterProvider, PeriodicExportingMetricReader } = require('@opentelemetry/sdk-metrics');
 const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
+const { OTLPMetricsExporter } = require('@opentelemetry/exporter-metrics-otlp-http');
 
-// Initialize OpenTelemetry
+// -------------------- OpenTelemetry Setup -------------------- //
+
+// Tracing
 const tracerProvider = new NodeTracerProvider();
 const traceExporter = new OTLPTraceExporter({
-  url: 'http://tempo:4318/v1/traces'
+  url: 'http://tempo:4318/v1/traces' // OTLP endpoint for traces
 });
 tracerProvider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
 tracerProvider.register();
 
-// Get tracer
+// Get tracer instance
 const tracer = trace.getTracer('dslm-sample-app', '1.0.0');
 
-// Configure Winston logger with Loki transport
+// Metrics
+const metricExporter = new OTLPMetricsExporter({
+  url: 'http://otel-collector:4318/v1/metrics' // OTLP endpoint for metrics
+});
+
+const meterProvider = new MeterProvider();
+meterProvider.addMetricReader(new PeriodicExportingMetricReader({
+  exporter: metricExporter,
+  exportIntervalMillis: 60000 // export every 60s
+}));
+
+// -------------------- Logging (Winston + Loki) -------------------- //
+
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -39,11 +55,11 @@ const logger = winston.createLogger({
   ]
 });
 
-// Prometheus metrics
+// -------------------- Prometheus Metrics -------------------- //
+
 const register = new promClient.Registry();
 promClient.collectDefaultMetrics({ register });
 
-// Custom metrics
 const httpRequestsTotal = new promClient.Counter({
   name: 'http_requests_total',
   help: 'Total number of HTTP requests',
@@ -65,11 +81,12 @@ const activeConnections = new promClient.Gauge({
   registers: [register]
 });
 
-// Express app
+// -------------------- Express Application -------------------- //
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware to track requests
+// Request tracking middleware
 app.use((req, res, next) => {
   const start = Date.now();
   activeConnections.inc();
@@ -136,7 +153,6 @@ app.get('/api/work', (req, res) => {
   const workSpan = tracer.startSpan('computation', { parent: span });
   workSpan.setAttribute('operation', 'fibonacci');
 
-  // Simulate some work
   const result = fibonacci(25);
 
   workSpan.setAttribute('result.size', result.toString().length);
@@ -145,8 +161,7 @@ app.get('/api/work', (req, res) => {
   logger.info('Work completed', {
     operation: 'fibonacci',
     input: 25,
-    result: result,
-    duration: span.duration
+    result: result
   });
 
   span.end();
@@ -182,7 +197,7 @@ app.get('/api/error', (req, res) => {
   });
 });
 
-// Metrics endpoint for Prometheus
+// Metrics endpoint
 app.get('/metrics', async (req, res) => {
   try {
     const metrics = await register.metrics();
@@ -193,56 +208,40 @@ app.get('/metrics', async (req, res) => {
   }
 });
 
-// Fibonacci function for work simulation
+// Fibonacci function
 function fibonacci(n) {
   if (n <= 1) return n;
   return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
-// Periodic logging and tracing
+// Periodic activity
 function generatePeriodicActivity() {
   const activities = [
     () => {
       const span = tracer.startSpan('periodic_health_check');
-      logger.info('Periodic health check', {
-        status: 'ok',
-        cpu: Math.random(),
-        memory: Math.random() * 100
-      });
+      logger.info('Periodic health check', { status: 'ok' });
       span.end();
     },
     () => {
       const span = tracer.startSpan('periodic_metric_collection');
-      logger.warn('High memory usage detected', {
-        memoryUsage: Math.random() * 100,
-        threshold: 80,
-        action: 'monitoring'
-      });
+      logger.warn('High memory usage detected', { usage: Math.random() * 100 });
       span.end();
     },
     () => {
       const span = tracer.startSpan('periodic_cleanup');
-      logger.info('Cleanup completed', {
-        itemsProcessed: Math.floor(Math.random() * 100),
-        duration: Math.random() * 10
-      });
+      logger.info('Cleanup completed', { itemsProcessed: Math.floor(Math.random() * 100) });
       span.end();
     }
   ];
-
-  const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-  randomActivity();
+  activities[Math.floor(Math.random() * activities.length)]();
 }
-
-// Start periodic activity
-setInterval(generatePeriodicActivity, 30000); // Every 30 seconds
+setInterval(generatePeriodicActivity, 30000);
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('Received SIGTERM, shutting down gracefully');
   tracerProvider.shutdown();
 });
-
 process.on('SIGINT', () => {
   logger.info('Received SIGINT, shutting down gracefully');
   tracerProvider.shutdown();
