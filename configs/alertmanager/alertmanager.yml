@@ -9,10 +9,14 @@ route:
   group_wait: 10s
   group_interval: 10s
   repeat_interval: 1h
-  receiver: 'web.hook'
+  receiver: 'default-receiver'
+  routes:
+    - match:
+        severity: 'critical'
+      receiver: 'default-receiver'
 
 receivers:
-- name: 'web.hook'
+- name: 'default-receiver'
   webhook_configs:
   - url: '${ALERTMANAGER_WEBHOOK_URL}'
 

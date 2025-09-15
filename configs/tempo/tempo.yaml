@@ -26,8 +26,6 @@ storage:
       path: /tmp/tempo/traces
     block:
       bloom_filter_false_positive: .05
-      index_downsample_bytes: 1000
-      encoding: zstd
     wal:
       path: /tmp/tempo/wal
     pool:
