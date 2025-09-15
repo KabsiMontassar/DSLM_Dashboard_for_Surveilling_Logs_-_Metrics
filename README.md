@@ -87,26 +87,38 @@ flowchart LR
 
 Demonstrates full-cycle observability expertise – from metrics (Prometheus) to logs (Loki), tracing (Tempo), alerting (Alertmanager), and visualization (Grafana).
 
+## Quick Start
+
+### Automated Setup (Recommended)
+
+```bash
+# Make scripts executable
+chmod +x setup.sh fix-permissions.sh
+
+# Run full automated setup
+./setup.sh setup
+```
+
+### Manual Setup
+
+```bash
+# 1. Copy environment file
+cp .env.example .env
+
+# 2. Fix permissions (if needed)
+./fix-permissions.sh
+
+# 3. Start services
+docker-compose up -d
+```
+
 ## Setup Instructions
 
-1. Ensure Docker and Docker Compose are installed.
-2. Clone this repository.
-3. **Configure Environment Variables**: Copy `.env.example` to `.env` and update sensitive values:
-
-   ```bash
-   cp .env.example .env
-   # Edit .env with your preferred settings
-   ```
-
-4. Run `docker-compose up -d` to start all services.
-5. Access the services:
-   - [Grafana](http://localhost:3000) (admin/admin)
-   - [Prometheus](http://localhost:9090)
-   - [Alertmanager](http://localhost:9093)
-   - [Loki](http://localhost:3100)
-   - [Tempo](http://localhost:3200)
-   - [Node Exporter](http://localhost:9100)
-   - [cAdvisor](http://localhost:8080)
+1. **Clone the repository**
+2. **Configure Environment**: Edit `.env` with your settings
+3. **Fix Permissions**: Run `./fix-permissions.sh` (Linux/Mac) or the manual commands
+4. **Start Services**: Run `docker-compose up -d`
+5. **Access Grafana**: [http://localhost:3000](http://localhost:3000) (admin/admin)
 
 ## Environment Configuration
 
@@ -146,10 +158,35 @@ All configurations are in the `configs/` directory:
 
 Data is persisted in the `data/` directory.
 
-## Integration with Microservices
+## Automation Scripts
 
-To integrate your microservices:
+The project includes automation scripts to simplify setup and management:
 
-1. **Metrics**: Expose metrics on `/metrics` endpoint, Prometheus will scrape them.
-2. **Logs**: Send logs to Loki via HTTP or use Promtail.
-3. **Traces**: Use OpenTelemetry SDK to send traces to Tempo.
+### `setup.sh` - Complete Setup Script
+
+```bash
+./setup.sh setup     # Full automated setup
+./setup.sh perms     # Fix permissions only
+./setup.sh start     # Start services
+./setup.sh stop      # Stop services
+./setup.sh restart   # Restart services
+./setup.sh status    # Check service status
+./setup.sh logs      # Show logs
+./setup.sh cleanup   # Remove containers and volumes
+```
+
+### `fix-permissions.sh` - Permission Fix Script
+
+```bash
+./fix-permissions.sh  # Fix all directory permissions
+```
+
+### Manual Permission Commands (Linux/Mac)
+
+```bash
+sudo chown -R 472:472 ./data/grafana       # Grafana
+sudo chown -R 65534:65534 ./data/prometheus # Prometheus
+sudo chown -R 10001:10001 ./data/loki       # Loki
+sudo chown -R 10001:10001 ./data/tempo      # Tempo
+chmod -R 755 ./data/
+```
