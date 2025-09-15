@@ -28,11 +28,3 @@ storage:
       bloom_filter_false_positive: .05
     wal:
       path: /tmp/tempo/wal
-
-metrics_generator:
-  processor: {}
-  storage:
-    path: /tmp/tempo/metrics
-    pool:
-      max_workers: 100
-      queue_depth: 10000
