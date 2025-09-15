@@ -37,6 +37,14 @@ check_permissions() {
         print_warning "Running as root - this is fine for setup"
     else
         print_status "Running as user $(whoami)"
+
+        # Check if user can use sudo
+        if sudo -n true 2>/dev/null; then
+            print_success "Sudo access available"
+        else
+            print_warning "Sudo access may be required for directory creation and permissions"
+            print_status "You might be prompted for your password during setup"
+        fi
     fi
 }
 
@@ -44,12 +52,41 @@ check_permissions() {
 create_directories() {
     print_status "Creating data directories..."
 
-    mkdir -p data/{prometheus,grafana,loki,tempo}
+    # Try to create directories as current user first
+    if mkdir -p data/{prometheus,grafana,loki,tempo} 2>/dev/null && mkdir -p data/grafana/{dashboards,plugins} 2>/dev/null; then
+        print_success "Data directories created"
+    else
+        print_warning "Permission denied creating directories as $(whoami)"
+        print_status "Trying with sudo..."
 
-    # Create Grafana subdirectories
-    mkdir -p data/grafana/{dashboards,plugins}
+        # Try with sudo
+        if sudo mkdir -p data/{prometheus,grafana,loki,tempo} 2>/dev/null && sudo mkdir -p data/grafana/{dashboards,plugins} 2>/dev/null; then
+            print_success "Data directories created with sudo"
 
-    print_success "Data directories created"
+            # Change ownership to current user for the data directories
+            if sudo chown -R $(whoami):$(whoami) data/ 2>/dev/null; then
+                print_success "Directory ownership changed to $(whoami)"
+            else
+                print_warning "Could not change ownership - you may need to run: sudo chown -R $(whoami):$(whoami) data/"
+            fi
+        else
+            print_error "Failed to create directories even with sudo"
+            print_status "Please check your permissions or try one of these solutions:"
+            echo ""
+            echo "  Option 1 - Run as root:"
+            echo "    sudo ./setup.sh setup"
+            echo ""
+            echo "  Option 2 - Create directories manually:"
+            echo "    sudo mkdir -p data/{prometheus,grafana,loki,tempo}"
+            echo "    sudo mkdir -p data/grafana/{dashboards,plugins}"
+            echo "    sudo chown -R $(whoami):$(whoami) data/"
+            echo ""
+            echo "  Option 3 - Check current directory permissions:"
+            echo "    ls -la"
+            echo "    pwd"
+            exit 1
+        fi
+    fi
 }
 
 # Fix permissions for all services
@@ -58,27 +95,33 @@ fix_permissions() {
 
     # Grafana (user ID 472)
     if [[ -d "data/grafana" ]]; then
-        sudo chown -R 472:472 data/grafana 2>/dev/null || {
+        if sudo chown -R 472:472 data/grafana 2>/dev/null; then
+            print_success "Grafana permissions fixed"
+        else
             print_warning "Could not set Grafana permissions (might need sudo)"
             print_status "Run: sudo chown -R 472:472 data/grafana"
-        }
+        fi
     fi
 
     # Prometheus (user ID 65534 - nobody)
     if [[ -d "data/prometheus" ]]; then
-        sudo chown -R 65534:65534 data/prometheus 2>/dev/null || {
+        if sudo chown -R 65534:65534 data/prometheus 2>/dev/null; then
+            print_success "Prometheus permissions fixed"
+        else
             print_warning "Could not set Prometheus permissions (might need sudo)"
             print_status "Run: sudo chown -R 65534:65534 data/prometheus"
-        }
+        fi
     fi
 
     # Loki and Tempo (user ID 10001)
     for service in loki tempo; do
         if [[ -d "data/$service" ]]; then
-            sudo chown -R 10001:10001 data/$service 2>/dev/null || {
+            if sudo chown -R 10001:10001 data/$service 2>/dev/null; then
+                print_success "$service permissions fixed"
+            else
                 print_warning "Could not set $service permissions (might need sudo)"
                 print_status "Run: sudo chown -R 10001:10001 data/$service"
-            }
+            fi
         fi
     done
 

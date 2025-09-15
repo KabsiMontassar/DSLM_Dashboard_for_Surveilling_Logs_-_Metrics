@@ -192,3 +192,62 @@ sudo chown -R 10001:10001 ./data/loki       # Loki
 sudo chown -R 10001:10001 ./data/tempo      # Tempo
 chmod -R 755 ./data/
 ```
+
+## Prerequisites
+
+- **Docker** (version 20.10 or later)
+- **Docker Compose** (plugin or standalone)
+- **sudo access** (for directory creation and permissions)
+- **Git** (for cloning the repository)
+
+## Troubleshooting
+
+### Permission Issues
+
+If you encounter permission errors during setup:
+
+```bash
+# Option 1: Run setup as root
+sudo ./setup.sh setup
+
+# Option 2: Create directories manually first
+sudo mkdir -p data/{prometheus,grafana,loki,tempo}
+sudo mkdir -p data/grafana/{dashboards,plugins}
+sudo chown -R $(whoami):$(whoami) data/
+
+# Then run setup
+./setup.sh setup
+```
+
+### Docker Compose Version Issues
+
+The setup script automatically detects your Docker Compose version:
+
+- ✅ `docker compose` (newer plugin format)
+- ✅ `docker-compose` (older standalone format)
+
+### Port Conflicts
+
+If you get port binding errors, update the ports in your `.env` file:
+
+```bash
+PROMETHEUS_PORT=9091    # Instead of 9090
+GRAFANA_PORT=3001       # Instead of 3000
+# etc...
+```
+
+## Integration with Microservices
+
+To integrate your microservices:
+
+1. **Metrics**: Expose metrics on `/metrics` endpoint, Prometheus will scrape them.
+2. **Logs**: Send logs to Loki via HTTP or use Promtail.
+3. **Traces**: Use OpenTelemetry SDK to send traces to Tempo.
+
+## Contributing
+
+Feel free to contribute by adding more dashboards, rules, or configurations.
+
+## License
+
+MIT License.
