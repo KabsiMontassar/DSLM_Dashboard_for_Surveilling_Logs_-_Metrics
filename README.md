@@ -153,11 +153,3 @@ To integrate your microservices:
 1. **Metrics**: Expose metrics on `/metrics` endpoint, Prometheus will scrape them.
 2. **Logs**: Send logs to Loki via HTTP or use Promtail.
 3. **Traces**: Use OpenTelemetry SDK to send traces to Tempo.
-
-## Contributing
-
-Feel free to contribute by adding more dashboards, rules, or configurations.
-
-## License
-
-MIT License.
